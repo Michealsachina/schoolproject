@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.student_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-lg">
+    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+      <h4>{{ student.student_name }}</h4>
+      <a href="{% url 'school_detail' student.school.id %}" class="btn btn-secondary btn-sm">
+        ← Back to {{ student.school.school_name }}
+      </a>
+    </div>
+
+    <div class="card-body row">
+      <!-- Student Photo -->
+      <div class="col-md-4 text-center">
+        {% if student.photo %}
+          <img src="{{ student.photo.url }}" class="img-thumbnail rounded-circle mb-3" width="180" height="180">
+        {% else %}
+          <img src="/static/images/default.png" class="img-thumbnail rounded-circle mb-3" width="180" height="180">
+        {% endif %}
+        
+        <!-- Upload photo form -->
+        <form method="POST" enctype="multipart/form-data" action="{% url 'student_update_photo' student.id %}">
+          {% csrf_token %}
+          <input type="file" name="photo" class="form-control mb-2">
+          <button type="submit" class="btn btn-sm btn-primary">Upload Photo</button>
+        </form>
+      </div>
+
+      <!-- Student Details + Edit -->
+      <div class="col-md-8">
+        <form method="POST" action="{% url 'student_edit' student.id %}">
+          {% csrf_token %}
+          <div class="mb-2"><strong>Date of Birth:</strong>
+            <input type="date" name="dob" value="{{ student.dob|date:'Y-m-d' }}" class="form-control">
+          </div>
+          <div class="mb-2"><strong>Days Old:</strong> {{ student.days }}</div>
+          <div class="mb-2"><strong>Class:</strong>
+            <input type="text" name="student_class" value="{{ student.student_class }}" class="form-control">
+          </div>
+          <div class="mb-2"><strong>Grade:</strong>
+            <select name="grade" class="form-control">
+              {% for key, value in student.GRADE_CHOICES %}
+                <option value="{{ key }}" {% if student.grade == key %}selected{% endif %}>{{ value }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2"><strong>Email:</strong>
+            <input type="email" name="email" value="{{ student.email }}" class="form-control">
+          </div>
+          <div class="mb-2"><strong>Phone:</strong>
+            <input type="text" name="phone" value="{{ student.phone }}" class="form-control">
+          </div>
+          <div class="mb-2"><strong>School:</strong> {{ student.school.school_name }}</div>
+
+          <button type="submit" class="btn btn-success mt-3">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Add Student{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header bg-success text-white">
+      <h5>Add Student to {{ school.school_name }}</h5>
+    </div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row">
+          <div class="col-md-6 mb-3">{{ form.student_name.label_tag }}{{ form.student_name }}</div>
+          <div class="col-md-6 mb-3">{{ form.dob.label_tag }}{{ form.dob }}</div>
+          <div class="col-md-6 mb-3">{{ form.photo.label_tag }}{{ form.photo }}</div>
+          <div class="col-md-6 mb-3">{{ form.email.label_tag }}{{ form.email }}</div>
+          <div class="col-md-6 mb-3">{{ form.student_class.label_tag }}{{ form.student_class }}</div>
+          <div class="col-md-6 mb-3">{{ form.grade.label_tag }}{{ form.grade }}</div>
+          <!-- Hide school input or show it disabled -->
+          <div class="col-12">
+            {{ form.school }} {# it's prefilled from the view; you can hide with CSS or render disabled #}
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{% url 'school_detail' school.id %}" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

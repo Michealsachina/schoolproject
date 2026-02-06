@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}{{ school.school_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <!-- School Info -->
+  <div class="card">
+    <div class="card-header bg-info text-white">
+      <h4>{{ school.school_name }}</h4>
+    </div>
+    <div class="card-body">
+      <p><b>City:</b> {{ school.city }}</p>
+      <p><b>State:</b> {{ school.state }}</p>
+      <p><b>Pincode:</b> {{ school.pincode }}</p>
+      <p><b>Principal:</b> {{ school.principal_name }}</p>
+      <p><b>Phone:</b> {{ school.phone }}</p>
+      <p><b>Email:</b> {{ school.email }}</p>
+      <p><b>Established Year:</b> {{ school.established_year }}</p>
+      <p><b>Address:</b> {{ school.address }}</p>
+    </div>
+  </div>
+
+  <!-- Students Table -->
+  <div class="card mt-4">
+    <div class="card-header d-flex justify-content-between">
+      <h5>Students of {{ school.school_name }}</h5>
+      <a href="{% url 'add_student' school.id %}" class="btn btn-success btn-sm">+ Add Student</a>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-striped mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>Name</th>
+            <th>DOB</th>
+            <th>Days</th>
+            <th>Class</th>
+            <th>Grade</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for st in students %}
+          <tr data-student-id="{{ st.id }}">
+            <td class="student-name">{{ st.student_name }}</td>
+            <td class="student-dob">{{ st.dob }}</td>
+            <td>{{ st.days }}</td>
+            <td class="student-class">{{ st.student_class }}</td>
+            <td class="student-grade">{{ st.grade }}</td>
+            <td class="student-email">{{ st.email }}</td>
+            <td>
+              <!-- View → go to new page -->
+              <a href="{% url 'student_detail' st.id %}" class="btn btn-info btn-sm">View</a>
+
+              <!-- Edit Modal -->
+              <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ st.id }}">Edit</button>
+
+              <!-- Delete Modal -->
+              <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ st.id }}">Delete</button>
+            </td>
+          </tr>
+
+          <!-- Edit Modal -->
+<div class="modal fade" id="editModal{{ st.id }}" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post"
+            action="{% url 'student_edit' st.id %}"
+            class="edit-student-form"
+            data-student-id="{{ st.id }}">
+        {% csrf_token %}
+
+        <!-- ✅ Hidden input to pass school ID -->
+        <input type="hidden" name="school" value="{{ st.school.id }}">
+
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">Edit {{ st.student_name }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label>Name</label>
+              <input type="text" name="student_name" value="{{ st.student_name }}" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Date of Birth</label>
+              <input type="date" name="dob" value="{{ st.dob|date:'Y-m-d' }}" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Email</label>
+              <input type="email" name="email" value="{{ st.email }}" class="form-control">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Class</label>
+              <input type="text" name="student_class" value="{{ st.student_class }}" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label>Grade</label>
+              <select name="grade" class="form-control">
+                {% for g in students.model.GRADE_CHOICES %}
+                  <option value="{{ g.0 }}" {% if st.grade == g.0 %}selected{% endif %}>{{ g.1 }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Update</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+          <!-- Delete Modal -->
+          <div class="modal fade" id="deleteModal{{ st.id }}" tabindex="-1">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
+              <div class="modal-content">
+                <form method="post" action="{% url 'student_delete' st.id %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{% url 'school_detail' school.id %}">
+                  <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Delete Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body text-center">
+                    <p>Are you sure you want to delete <b>{{ st.student_name }}</b>?</p>
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Back to Schools -->
+  <div class="mt-3">
+    <a href="{% url 'school_list' %}" class="btn btn-secondary">← Back to Schools</a>
+  </div>
+</div>
+
+<!-- AJAX Script -->
+<script>
+  // CSRF token helper
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + "=")) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie("csrftoken");
+
+  // Attach AJAX handler to all edit forms
+  document.querySelectorAll(".edit-student-form").forEach(form => {
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const studentId = this.dataset.studentId;
+      const url = this.action;
+      const formData = new FormData(this);
+
+      fetch(url, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrftoken
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // update row instantly
+          const row = document.querySelector(`tr[data-student-id="${studentId}"]`);
+          if (row) {
+            row.querySelector(".student-name").textContent = data.student_name;
+            row.querySelector(".student-dob").textContent = data.dob;
+            row.querySelector(".student-class").textContent = data.student_class;
+            row.querySelector(".student-grade").textContent = data.grade;
+            row.querySelector(".student-email").textContent = data.email;
+          }
+          // close modal
+          const modal = bootstrap.Modal.getInstance(this.closest(".modal"));
+          modal.hide();
+          alert("✅ Student updated successfully!");
+        } else {
+          alert("❌ Update failed: " + JSON.stringify(data.errors));
+        }
+      })
+      .catch(err => console.error("Error:", err));
+    });
+  });
+</script>
+{% endblock %}
