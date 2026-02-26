@@ -1,5 +1,5 @@
 from django.db import models
-from school.models import School
+from myproject.school.models import School
 from datetime import date
 
 class Student(models.Model):
