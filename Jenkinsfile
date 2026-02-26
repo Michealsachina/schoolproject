@@ -26,7 +26,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                bat 'venv\\Scripts\\activate && pytest -v'
+                bat 'venv\\Scripts\\activate && pytest tests -v -s'
             }
         }
     }
