@@ -3,31 +3,34 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
+        stage('Install Dependencies') {
             steps {
-                git 'https://github.com/Michealsachina/schoolproject.git'
+                bat 'python -m venv env'
+                bat 'env\\Scripts\\pip install -r requirements.txt'
+                bat 'env\\Scripts\\playwright install'
             }
         }
 
-        stage('Setup Python') {
+        stage('Start Django Server') {
             steps {
-                bat 'python -m venv venv'
-                bat 'venv\\Scripts\\activate && python -m pip install --upgrade pip'
-            }
-        }
-
-        stage('Install Requirements') {
-            steps {
-                bat 'venv\\Scripts\\activate && pip install -r requirements.txt'
-                bat 'venv\\Scripts\\activate && pip install pytest playwright pytest-playwright'
-                bat 'venv\\Scripts\\activate && playwright install'
+                bat '''
+                start /B env\\Scripts\\python manage.py migrate
+                start /B env\\Scripts\\python manage.py runserver 127.0.0.1:8000
+                timeout /t 10
+                '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat 'venv\\Scripts\\activate && pytest tests -v -s'
+                bat 'env\\Scripts\\pytest'
             }
+        }
+    }
+
+    post {
+        always {
+            bat 'taskkill /F /IM python.exe'
         }
     }
 }
