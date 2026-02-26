@@ -3,23 +3,30 @@ pipeline {
 
     stages {
 
-        stage('Clone') {
+        stage('Checkout') {
             steps {
-                checkout scm
+                git 'https://github.com/Michealsachina/schoolproject.git'
             }
         }
 
         stage('Setup Python') {
             steps {
-                bat 'python -m venv env'
-                bat 'env\\Scripts\\activate && pip install -r requirements.txt'
-                bat 'env\\Scripts\\activate && python -m playwright install'
+                bat 'python -m venv venv'
+                bat 'venv\\Scripts\\activate && python -m pip install --upgrade pip'
+            }
+        }
+
+        stage('Install Requirements') {
+            steps {
+                bat 'venv\\Scripts\\activate && pip install -r requirements.txt'
+                bat 'venv\\Scripts\\activate && pip install pytest playwright pytest-playwright'
+                bat 'venv\\Scripts\\activate && playwright install'
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat 'env\\Scripts\\activate && pytest -v'
+                bat 'venv\\Scripts\\activate && pytest -v'
             }
         }
     }
